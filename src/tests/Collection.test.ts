@@ -58,3 +58,39 @@ describe('Collection query', () => {
     expect(results[0]).toEqual([]);
   });
 });
+
+describe('Collection Query with KDTree', () => {
+  let client: Vector5Client;
+  let collection: ReturnType<typeof client.create_collection>;
+
+  beforeEach(() => {
+    client = new Vector5Client();
+    collection = client.create_collection('testCollection');
+
+    const items = [
+      { id: 'item1', vector: [1, 2, 3], metadata: { category: 'A' }, document: 'Document 1' },
+      { id: 'item2', vector: [4, 5, 6], metadata: { category: 'A' }, document: 'Document 2' },
+      { id: 'item3', vector: [7, 8, 9], metadata: { category: 'B' }, document: 'Document 3' },
+    ];
+
+    items.forEach((item) => collection.add(item.id, item.vector, item.metadata, item.document));
+  });
+
+  test('query - find nearest item', () => {
+    const query_embeddings = [[3, 4, 5]];
+    const results = collection.query(query_embeddings, 1, Metric.EUCLIDEAN);
+
+    expect(results.length).toBe(1);
+    expect(results[0][0].id).toBe('item2');
+  });
+
+  test('query - find nearest items with where', () => {
+    const query_embeddings = [[3, 4, 5]];
+    const results = collection.query(query_embeddings, 2, Metric.EUCLIDEAN, { category: 'A' });
+
+    expect(results.length).toBe(1);
+    expect(results[0].length).toBe(2);
+    expect(results[0][0].id).toBe('item2');
+    expect(results[0][1].id).toBe('item1');
+  });
+});

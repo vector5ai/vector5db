@@ -87,20 +87,9 @@ describe('Collection', () => {
         expect(collection.peek()).toEqual(items.slice(0, 5));
     });
 
-    test('query', () => {
-        // Add test for the query method here
-    });
-
     test('delete', () => {
         collection.add('item1', [1.5, 2.9, 3.4], { example: 'value' }, 'Sample document');
         collection.delete('item1');
         expect(collection.get('item1')).toBeNull();
-    });
-
-    // As the query method requires additional logic and calculation, it is not covered in this example.
-    // You can create a separate function for distance calculation (e.g., Euclidean or cosine similarity)
-    // and then use it in the query method to return the desired results.
-    test('query', () => {
-        // Add test for the query method here
     });
 });

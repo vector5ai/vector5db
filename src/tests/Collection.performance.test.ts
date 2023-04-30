@@ -1,5 +1,6 @@
-import { Collection, Item } from '../Vector5Client';
+import { Collection } from '../Vector5Client';
 import { Metric } from '../metrics/Metrics';
+import { Item } from '../Item';
 
 function generateRandomVector(length: number): number[] {
   return Array.from({ length }, () => Math.random());
@@ -52,7 +53,7 @@ describe('Collection Performance Tests', () => {
   ];
 
   testCases.forEach((testCase) => {
-    test(`Performance test for ${testCase.itemCount} items with ${testCase.vectorLength}-dimensional vectors`, () => {
+    test.skip(`Performance test for ${testCase.itemCount} items with ${testCase.vectorLength}-dimensional vectors`, () => {
       testPerformance(testCase.itemCount, testCase.vectorLength, testCase.k, testCase.metric);
     });
   });

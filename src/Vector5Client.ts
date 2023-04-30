@@ -1,7 +1,9 @@
+import { Item } from './Item';
 import { EuclideanDistance } from './metrics/EuclideanDistance';
 import { CosineSimilarity } from './metrics/CosineSimilarity';
 import { JaccardSimilarity } from './metrics/JaccardSimilarity';
 import { Metric } from './metrics/Metrics';
+import { KDTree } from './KDTree';
 
 export class Vector5Client {
     private collections: Map<string, Collection>;
@@ -44,6 +46,7 @@ export class Vector5Client {
 export class Collection {
     private name: string;
     private data: Map<string, Item>;
+    private kdTree: KDTree;
 
     constructor(name: string) {
         this.name = name;
@@ -54,14 +57,13 @@ export class Collection {
         return this.data.size;
     }
 
-    add(
-        id: string,
-        vector: number[],
-        metadata: Record<string, any>,
-        document: string
-    ): void {
+    add(id: string, vector: number[], metadata: Record<string, any>, document: string): void {
         const item: Item = { id, vector, metadata, document };
         this.data.set(id, item);
+    
+        if (this.kdTree) {
+            this.kdTree.add(item);
+        }
     }
 
     get(id: string): Item | null {
@@ -78,30 +80,36 @@ export class Collection {
         metric: Metric = Metric.EUCLIDEAN,
         where: Record<string, any> = {}
     ): Item[][] {
+        this.ensureKDTree();
         const distanceFunction = this.getDistanceFunction(metric);
 
         return query_embeddings.map((query_embedding) => {
-            const itemsWithDistance = Array.from(this.data.values())
-                .filter((item) => this.filterByMetadata(item, where))
-                .map((item) => ({
-                    ...item,
-                    distance: distanceFunction(query_embedding, item.vector),
-                }));
-
-            itemsWithDistance.sort((a, b) => a.distance - b.distance);
-
-            return itemsWithDistance.slice(0, n_results);
+            const nearest = this.kdTree!.nearest(query_embedding, n_results, distanceFunction, where);
+            return nearest;
         });
     }
 
     delete(id: string): void {
+        const item = this.data.get(id);
+    
+        if (item && this.kdTree) {
+            this.kdTree.remove(item);
+        }
+    
         this.data.delete(id);
     }
 
     distance(a: number[], b: number[], metric: Metric): number {
-        const distanceFunction = this.getDistanceFunction(metric);
-
-        return distanceFunction(a, b)
+        switch (metric) {
+            case Metric.EUCLIDEAN:
+                return EuclideanDistance.distance(a, b);
+            case 'cosine':
+                return CosineSimilarity.distance(a, b);
+            case 'jaccard':
+                return JaccardSimilarity.distance(a, b);
+            default:
+                throw new Error(`Unsupported metric: ${metric}`);
+        }
     }
 
     nearestNeighbors(queryVector: number[], k: number, metric: Metric): Item[] {
@@ -127,22 +135,19 @@ export class Collection {
     }
 
     private getDistanceFunction(metric: Metric): (a: number[], b: number[]) => number {
-        switch (metric) {
-            case Metric.EUCLIDEAN:
-                return EuclideanDistance.distance;
-            case 'cosine':
-                return CosineSimilarity.distance;
-            case 'jaccard':
-                return JaccardSimilarity.distance;
-            default:
-                throw new Error(`Unsupported metric: ${metric}`);
+        return (a, b) => this.distance(a, b, metric);
+    }
+
+    private ensureKDTree(): void {
+        if (!this.kdTree) {
+            const dimensions = this.getDimensions();
+            const itemsArray = Array.from(this.data.values());
+            this.kdTree = new KDTree(itemsArray, dimensions);
         }
     }
-}
 
-export interface Item {
-    id: string;
-    vector: number[];
-    metadata: Record<string, any>;
-    document: string;
+    private getDimensions(): number {
+        const firstItem = this.data.values().next().value;
+        return firstItem ? firstItem.vector.length : 0;
+    }
 }
