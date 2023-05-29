@@ -4,21 +4,25 @@ import JaccardSimilarity from './metrics/JaccardSimilarity';
 import { Metric } from './metrics/Metric';
 import Item from './Item';
 import { KDTree } from './lib/KDTree';
-import { Index, IndexKey } from './lib/Index';
+import { Index, IndexType, MetadataType } from './lib/Index';
 import { KDTreeIndex } from './lib/KDTreeIndex';
 import { BruteForceIndex } from './lib/BruteForceIndex';
+import { KDTreePQIndex } from './lib/kdtree/KDTreePQIndex';
 
 export default class Collection {
     private name: string;
     private data: Map<string, Item>;
     private useKdTree: boolean;
-    // private indices: Map<string, Index>;
-    private index: Index;
+    private indices: Map<IndexType, Index>;
+    private indexTypes: IndexType[];
+    private metric: Metric;
 
-    constructor(name: string, useKdTree: boolean = true) {
+    constructor(name: string, metric: Metric = Metric.EUCLIDEAN, indicies: IndexType[] = [IndexType.BRUTE_FORCE]) {
         this.name = name;
         this.data = new Map();
-        this.useKdTree = useKdTree;
+        this.metric = metric;
+        this.indexTypes = indicies;
+        this.indices = new Map();
 
         this.initIndices();
     }
@@ -36,7 +40,10 @@ export default class Collection {
         const item: Item = { id, vector, metadata, document };
         this.data.set(id, item);
 
-        this.index.addItem(item);
+        this.indices.forEach(index => {
+            index.addItem(item);
+        });
+
     }
 
     get(id: string): Item | null {
@@ -50,25 +57,29 @@ export default class Collection {
     query(
         query_embeddings: number[][],
         n_results: number = 1,
-        metric: Metric = Metric.EUCLIDEAN,
-        where: Record<string, any> = {}
+        where?: MetadataType | undefined,
+        indexType: IndexType = IndexType.BRUTE_FORCE,
     ): Item[][] {
-        console.log(this.index.constructor.name);
-        const distanceFunction = this.getDistanceFunction(metric);
+        const index = this.indices.get(indexType);
+        if(!index)
+            throw new Error(`Unsupported index: ${indexType}`);
 
-        this.index.buildIndex();
+        index.buildIndex();
 
-        return query_embeddings.map((query_embedding) => {
-            const nearest = this.index.query(query_embedding, distanceFunction, n_results, undefined, where);
-            return nearest.map(item => this.data.get(item.dataId));
+        const result = query_embeddings.map((query_embedding) => {
+            const nearest = index.query(query_embedding, n_results, undefined, where);
+            return nearest.items.map(item => this.data.get(item.dataId)).filter((item): item is Item => item !== undefined) as Item[];
         });
 
+        return result;
     }
 
     delete(id: string): void {
         this.data.delete(id);
 
-        this.index.removeItem(id);
+        this.indices.forEach(index => {
+            index.removeItem(id);
+        });
     }
 
     reset(): void {
@@ -92,11 +103,12 @@ export default class Collection {
     }
 
     private initIndices(): void {
-        if (this.useKdTree) {
-            this.index = new KDTreeIndex();
-        } else {
-            this.index = new BruteForceIndex();
-        }
+        this.indexTypes.forEach(type => {
+            if(type == IndexType.BRUTE_FORCE)
+                this.indices.set(type,  new BruteForceIndex( this.getDistanceFunction(this.metric)));
+            else
+                throw new Error(`Unsupported index: ${type}`);
+        });
     }
 
     private getDistanceFunction(metric: Metric = Metric.EUCLIDEAN): (a: number[], b: number[]) => number {

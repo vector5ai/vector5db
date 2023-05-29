@@ -1,28 +1,37 @@
 {
     "version": "0.2.0",
     "configurations": [
-        {
-            "name": "Jest Tests",
-            "type": "node",
-            "request": "launch",
-            "program": "${workspaceFolder}/node_modules/jest/bin/jest",
-            "args": [
-                "--config",
-                "${workspaceFolder}/jest.config.js"
-            ],
-            "console": "integratedTerminal",
-            "internalConsoleOptions": "neverOpen",
-            "outFiles": [
-                "${workspaceFolder}/dist/**/*.js"
-            ],
-            "env": {
-                "NODE_ENV": "test"
-            },
-            "sourceMaps": true,
-            "protocol": "inspector",
-            "restart": true,
-            "cwd": "${workspaceFolder}",
-            "runtimeVersion": "18.16.0"
-        }
+        // {
+        //     "name": "Benchmark",
+        //     "program": "${workspaceFolder}/test/lib/benchmark.ts",
+        //     "request": "launch",
+        //     "console": "integratedTerminal",
+        //     "type": "node",
+        //     "preLaunchTask": "tsc: build - ${workspaceFolder}/test/lib/tsconfig.json",
+        //     "outFiles": ["${workspaceFolder}/out/**/*.js"]
+        // },
+        // {
+        //     "name": "Jest Tests",
+        //     "type": "node",
+        //     "request": "launch",
+        //     "program": "${workspaceFolder}/node_modules/jest/bin/jest",
+        //     "args": [
+        //         "--config",
+        //         "${workspaceFolder}/jest.config.js"
+        //     ],
+        //     "console": "integratedTerminal",
+        //     "internalConsoleOptions": "neverOpen",
+        //     "outFiles": [
+        //         "${workspaceFolder}/dist/**/*.js"
+        //     ],
+        //     "env": {
+        //         "NODE_ENV": "test"
+        //     },
+        //     "sourceMaps": true,
+        //     "protocol": "inspector",
+        //     "restart": true,
+        //     "cwd": "${workspaceFolder}",
+        //     "runtimeVersion": "18.16.0"
+        // }
     ]
 }

@@ -1,10 +1,12 @@
 import Item from "../Item";
-import { Index, IndexKey, MetadataType } from "./Index"
+import { Index, IndexKey, MetadataType, QueryResult } from "./Index"
 
-export class BruteForceIndex implements Index {
+export class BruteForceIndex extends Index {
     index: Map<string, IndexKey>;
+    distanceFunction: (a: number[], b: number[]) => number;
 
-    constructor() {
+    constructor(distanceFunction: (a: number[], b: number[]) => number) {
+        super(distanceFunction);
         this.index = new Map();
     }
 
@@ -21,7 +23,7 @@ export class BruteForceIndex implements Index {
     buildIndex(): void {
         
     }
-    query(queryVector: number[], distanceFunction: (a: number[], b: number[]) => number, maxResults: number, maxDistance?: number | undefined, where?: MetadataType | undefined) {
+    query(queryVector: number[], maxResults: number, maxDistance?: number | undefined, where?: MetadataType | undefined): QueryResult {
         let filteredItems = Array.from(this.index.values());
 
         if (where !== undefined) {
@@ -30,20 +32,14 @@ export class BruteForceIndex implements Index {
 
         const itemsWithDistance = filteredItems.map((item) => ({
             ...item,
-            distance: distanceFunction(queryVector, item.vector),
+            distance: this.distanceFunction(queryVector, item.vector),
         }));
 
         itemsWithDistance.sort((a, b) => a.distance - b.distance);
 
-        return itemsWithDistance.slice(0, maxResults);
-    }
+        const result = new QueryResult(queryVector, maxDistance,  where);
 
-    private filterByMetadata(item: IndexKey, where: Record<string, any>): boolean {
-        for (const key in where) {
-            if (item.metadata[key] !== where[key]) {
-                return false;
-            }
-        }
-        return true;
+        itemsWithDistance.slice(0, maxResults).forEach(item => result.items.push({ dataId: item.dataId, distance: item.distance }));
+        return result;
     }
 }
