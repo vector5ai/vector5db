@@ -39,13 +39,13 @@ export class KDTree {
         return node;
     }
 
-    async nearestNeighbor(queryPoint: number[], distanceFunction: (a: number[], b: number[]) => number, where: Record<string, any> = {}, n_results: number, maxDistance?: number): Promise<Item[]> {
+    nearestNeighbor(queryPoint: number[], distanceFunction: (a: number[], b: number[]) => number, where: Record<string, any> = {}, n_results: number, maxDistance?: number): Item[] {
         let results: Item[] = [];
-        await this.searchNearest(this.root, queryPoint, distanceFunction, 0, where, results, n_results, maxDistance);
+        this.searchNearest(this.root, queryPoint, distanceFunction, 0, where, results, n_results, maxDistance);
         return results;
     }
 
-    private async searchNearest(node: KDNode | null, queryPoint: number[], distanceFunction: (a: number[], b: number[]) => number, depth: number, where: Record<string, any>, results: Item[], n_results: number, maxDistance?: number): Promise<void> {
+    private searchNearest(node: KDNode | null, queryPoint: number[], distanceFunction: (a: number[], b: number[]) => number, depth: number, where: Record<string, any>, results: Item[], n_results: number, maxDistance?: number): void {
         if (!node) {
             return;
         }
@@ -54,27 +54,36 @@ export class KDTree {
         const axis = depth % k;
         const nextBranch = queryPoint[axis] < node.point[axis] ? node.left : node.right;
         const oppositeBranch = nextBranch === node.left ? node.right : node.left;
+        node.item.distance = node.item.distance || distanceFunction(queryPoint, node.point);
 
-        await this.searchNearest(nextBranch, queryPoint, distanceFunction, depth + 1, where, results, n_results, maxDistance);
-
-        if (this.filterByMetadata(node.item, where)) {
-            const currentDistance = distanceFunction(queryPoint, node.point);
-            if ((maxDistance === undefined || currentDistance <= maxDistance) && (results.length < n_results || currentDistance < (results[results.length - 1].distance ?? Infinity))) {
-
-                const newItem = {
-                    ...node.item,
-                    distance: currentDistance
-                };
-                results.push(newItem);
-                results.sort((a, b) => (a.distance ?? Infinity) - (b.distance ?? 0));
-                if (results.length > n_results) {
-                    results.pop();
-                }
+        const addResult = (item: Item) => {
+            results.push(item);
+            results.sort((a, b) => (a.distance ?? Infinity) - (b.distance ?? 0));
+            if (results.length > n_results) {
+                results.pop();
             }
         }
 
-        if (results.length < n_results || Math.abs(queryPoint[axis] - node.point[axis]) < (results[results.length - 1]?.distance ?? Infinity )) {
-            await this.searchNearest(oppositeBranch, queryPoint, distanceFunction, depth + 1, where, results, n_results, maxDistance);
+        if (nextBranch === null && oppositeBranch == null) {
+            if (this.filterByMetadata(node.item, where)) {
+                if ((maxDistance === undefined || node.item.distance <= maxDistance) && (results.length < n_results || node.item.distance < (results[results.length - 1].distance ?? Infinity))) {
+                    addResult(node.item)
+                }
+            }
+
+            return;
+        }
+
+        this.searchNearest(nextBranch, queryPoint, distanceFunction, depth + 1, where, results, n_results, maxDistance);
+
+        if (this.filterByMetadata(node.item, where)) {
+            if ((maxDistance === undefined || node.item.distance <= maxDistance) && (results.length < n_results || node.item.distance < (results[results.length - 1].distance ?? Infinity))) {
+                addResult(node.item);
+            }
+        }
+
+        if (results.length < n_results || Math.abs(queryPoint[axis] - node.point[axis]) < (results[results.length - 1]?.distance ?? Infinity)) {
+            this.searchNearest(oppositeBranch, queryPoint, distanceFunction, depth + 1, where, results, n_results, maxDistance);
         }
     }
 
