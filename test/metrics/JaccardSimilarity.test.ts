@@ -1,4 +1,4 @@
-import { JaccardSimilarity } from '../../metrics/JaccardSimilarity';
+import JaccardSimilarity from '../../src/metrics/JaccardSimilarity';
 
 describe('JaccardSimilarity', () => {
     test('similarity', () => {
