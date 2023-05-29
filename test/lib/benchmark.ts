@@ -58,10 +58,10 @@ const barMyImpl2D = new ProgressBar('My Impl 2D points [:bar] :percent :etas', {
 const barKDTreeJS2D = new ProgressBar('KDTreeJS 2D points [:bar] :percent :etas', { total: numQueries2D });
 
 let initialMemory = v8.getHeapStatistics();//process.memoryUsage().heapUsed;
-const myKDTree2D = new KDTree(points2D.map(point => [point[0], point[1]]));
+const myKDTree2D = new KDTree(points2D.map(point => {return { id: 'item1', vector: [point[0], point[1]], metadata: {}, document: '' }}));
 const myKDTree2DStartTime = performance.now();
 const myImplResults = queryPoints2D.map((queryPoint, index, array) => {
-  myKDTree2D.nearestNeighbor([queryPoint[0], queryPoint[1]], euclideanDistanceMyImpl);
+  myKDTree2D.nearestNeighbor([queryPoint[0], queryPoint[1]], euclideanDistanceMyImpl, undefined, 1);
   barMyImpl2D.tick();
 });
 const myKDTree2DEndTime = performance.now();
@@ -115,11 +115,10 @@ const barMyImpl1536D = new ProgressBar('My Impl 1536D points [:bar] :percent :et
 const barKDTreeJS1536D = new ProgressBar('KDTreeJS 1536D points [:bar] :percent :etas', { total: numQueries1536D });
 
 initialMemory = v8.getHeapStatistics();//process.memoryUsage().heapUsed;
-const myKDTree1536D = new KDTree(points1536D.map(point => point.coords));
+const myKDTree1536D = new KDTree(points1536D.map(point => {return { id: 'item1', vector: point.coords, metadata: {}, document: '' }}));
 const myKDTree1536DStartTime = performance.now();
-queryPoints1536D.forEach(queryPoint => myKDTree1536D.nearestNeighbor(queryPoint.coords, euclideanDistanceMyImpl));
 const myImplResults1536D = queryPoints1536D.map((queryPoint, index, array) => {
-  myKDTree1536D.nearestNeighbor(queryPoint.coords, euclideanDistanceMyImpl);
+  myKDTree1536D.nearestNeighbor(queryPoint.coords, euclideanDistanceMyImpl, undefined, 1);
   barMyImpl1536D.tick();
 });
 const myKDTree1536DEndTime = performance.now();
