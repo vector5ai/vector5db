@@ -1,4 +1,5 @@
 import Collection from '../src/Collection';
+import Item from '../src/Item';
 import { Metric } from '../src/metrics/Metric';
 
 function generateRandomVector(length: number): number[] {
@@ -28,10 +29,10 @@ function testPerformance(itemCount: number, vectorLength: number, k: number, met
     collection.add(item.id, item.vector, item.metadata, item.document);
   });
 
-  const queryVector = generateRandomVector(vectorLength);
+  const queryItem = generateItems(1, vectorLength)[0];
 
   const startTime = performance.now();
-  collection.nearestNeighbors(queryVector, k, metric);
+  collection.nearestNeighbors(queryItem, k, metric);
   const endTime = performance.now();
 
   console.log(`Time taken for ${itemCount} items with ${vectorLength}-dimensional vectors: ${(endTime - startTime).toFixed(2)} ms`);
@@ -52,7 +53,7 @@ describe('Collection Performance Tests', () => {
   ];
 
   testCases.forEach((testCase) => {
-    test.skip(`Performance test for ${testCase.itemCount} items with ${testCase.vectorLength}-dimensional vectors`, () => {
+    test(`Performance test for ${testCase.itemCount} items with ${testCase.vectorLength}-dimensional vectors`, () => {
       testPerformance(testCase.itemCount, testCase.vectorLength, testCase.k, testCase.metric);
     });
   });
