@@ -1,61 +1,61 @@
-import { Vector5Client } from '../Vector5Client';
+import Vector5db from '../src/Vector5db';
 
 describe('Vector5Client', () => {
-    let client: Vector5Client;
+    let client: Vector5db;
 
     beforeEach(() => {
-        client = new Vector5Client();
+        client = new Vector5db();
     });
 
-    test('list_collections', () => {
-        client.create_collection('test1');
-        client.create_collection('test2');
-        expect(client.list_collections()).toEqual(['test1', 'test2']);
+    test('listCollections', () => {
+        client.createCollection('test1');
+        client.createCollection('test2');
+        expect(client.listCollections()).toEqual(['test1', 'test2']);
     });
 
-    test('create_collection', () => {
-        const collection = client.create_collection('testname');
-        expect(client.list_collections()).toContain('testname');
+    test('createCollection', () => {
+        const collection = client.createCollection('testname');
+        expect(client.listCollections()).toContain('testname');
         expect(collection).toBeDefined();
     });
 
-    test('get_collection', () => {
-        client.create_collection('testname');
-        const collection = client.get_collection('testname');
+    test('getCollection', () => {
+        client.createCollection('testname');
+        const collection = client.getCollection('testname');
         expect(collection).toBeDefined();
     });
 
-    test('get_or_create_collection', () => {
-        const collection1 = client.get_or_create_collection('testname');
-        expect(client.list_collections()).toContain('testname');
+    test('getOrCreateCollection', () => {
+        const collection1 = client.getOrCreateCollection('testname');
+        expect(client.listCollections()).toContain('testname');
         expect(collection1).toBeDefined();
 
-        const collection2 = client.get_or_create_collection('testname');
+        const collection2 = client.getOrCreateCollection('testname');
         expect(collection1).toBe(collection2);
     });
 
-    test('delete_collection', () => {
-        client.create_collection('testname');
-        client.delete_collection('testname');
-        expect(client.list_collections()).not.toContain('testname');
+    test('deleteCollection', () => {
+        client.createCollection('testname');
+        client.deleteCollection('testname');
+        expect(client.listCollections()).not.toContain('testname');
     });
 
     test('reset', () => {
-        client.create_collection('test1');
-        client.create_collection('test2');
+        client.createCollection('test1');
+        client.createCollection('test2');
         client.reset();
-        expect(client.list_collections()).toEqual([]);
+        expect(client.listCollections()).toEqual([]);
     });
 });
 
 
 describe('Collection', () => {
-    let client: Vector5Client;
-    let collection: ReturnType<typeof client.create_collection>;
+    let client: Vector5db;
+    let collection: ReturnType<typeof client.createCollection>;
 
     beforeEach(() => {
-        client = new Vector5Client();
-        collection = client.create_collection('testCollection');
+        client = new Vector5db();
+        collection = client.createCollection('testCollection');
     });
 
     test('count', () => {
@@ -87,20 +87,9 @@ describe('Collection', () => {
         expect(collection.peek()).toEqual(items.slice(0, 5));
     });
 
-    test('query', () => {
-        // Add test for the query method here
-    });
-
     test('delete', () => {
         collection.add('item1', [1.5, 2.9, 3.4], { example: 'value' }, 'Sample document');
         collection.delete('item1');
         expect(collection.get('item1')).toBeNull();
-    });
-
-    // As the query method requires additional logic and calculation, it is not covered in this example.
-    // You can create a separate function for distance calculation (e.g., Euclidean or cosine similarity)
-    // and then use it in the query method to return the desired results.
-    test('query', () => {
-        // Add test for the query method here
     });
 });

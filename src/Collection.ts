@@ -1,47 +1,10 @@
-import { EuclideanDistance } from './metrics/EuclideanDistance';
-import { CosineSimilarity } from './metrics/CosineSimilarity';
-import { JaccardSimilarity } from './metrics/JaccardSimilarity';
-import { Metric } from './metrics/Metrics';
+import EuclideanDistance from './metrics/EuclideanDistance';
+import CosineSimilarity from './metrics/CosineSimilarity';
+import JaccardSimilarity from './metrics/JaccardSimilarity';
+import { Metric } from './metrics/Metric';
+import Item from './Item';
 
-export class Vector5Client {
-    private collections: Map<string, Collection>;
-
-    constructor() {
-        this.collections = new Map();
-    }
-
-    list_collections(): string[] {
-        return Array.from(this.collections.keys());
-    }
-
-    create_collection(name: string): Collection {
-        const collection = new Collection(name);
-        this.collections.set(name, collection);
-        return collection;
-    }
-
-    get_collection(name: string): Collection | null {
-        return this.collections.get(name) || null;
-    }
-
-    get_or_create_collection(name: string): Collection {
-        let collection = this.get_collection(name);
-        if (!collection) {
-            collection = this.create_collection(name);
-        }
-        return collection;
-    }
-
-    delete_collection(name: string): void {
-        this.collections.delete(name);
-    }
-
-    reset(): void {
-        this.collections.clear();
-    }
-}
-
-export class Collection {
+export default class Collection {
     private name: string;
     private data: Map<string, Item>;
 
@@ -98,18 +61,22 @@ export class Collection {
         this.data.delete(id);
     }
 
-    distance(a: number[], b: number[], metric: Metric): number {
+    reset(): void {
+        this.data.clear();
+    }
+
+    distance(a: number[], b: number[], metric: Metric = Metric.EUCLIDEAN): number {
         const distanceFunction = this.getDistanceFunction(metric);
 
         return distanceFunction(a, b)
     }
 
-    nearestNeighbors(queryVector: number[], k: number, metric: Metric): Item[] {
+    nearestNeighbors(queryItem: Item, k: number, metric: Metric = Metric.EUCLIDEAN): Item[] {
         const itemsArray = Array.from(this.data.values());
 
         const distances = itemsArray.map((item) => ({
             ...item,
-            distance: this.distance(queryVector, item.vector, metric),
+            distance: this.distance(queryItem.vector, item.vector, metric),
         }));
 
         distances.sort((a, b) => a.distance - b.distance);
@@ -126,23 +93,16 @@ export class Collection {
         return true;
     }
 
-    private getDistanceFunction(metric: Metric): (a: number[], b: number[]) => number {
+    private getDistanceFunction(metric: Metric = Metric.EUCLIDEAN): (a: number[], b: number[]) => number {
         switch (metric) {
             case Metric.EUCLIDEAN:
                 return EuclideanDistance.distance;
-            case 'cosine':
+            case Metric.COSINE:
                 return CosineSimilarity.distance;
-            case 'jaccard':
+            case Metric.JACCARD:
                 return JaccardSimilarity.distance;
             default:
                 throw new Error(`Unsupported metric: ${metric}`);
         }
     }
-}
-
-export interface Item {
-    id: string;
-    vector: number[];
-    metadata: Record<string, any>;
-    document: string;
 }
