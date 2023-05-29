@@ -1,7 +1,7 @@
 {
   "name": "@vector5ai/vector5db",
   "description": "typescript vector storage for frontend applications",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "license": "MIT",
   "main": "Vector5db.ts",
   "keywords": [
@@ -24,5 +24,20 @@
   },
   "scripts": {
     "test": "jest"
-  }
+  },
+  "directories": {
+    "test": "test"
+  },
+  "dependencies": {
+    "typescript": "^5.0.4"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vector5ai/vector5db.git"
+  },
+  "author": "vector5.ai",
+  "bugs": {
+    "url": "https://github.com/vector5ai/vector5db/issues"
+  },
+  "homepage": "https://github.com/vector5ai/vector5db#readme"
 }
