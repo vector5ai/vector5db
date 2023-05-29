@@ -1,13 +1,14 @@
-import { Vector5Client } from '../Vector5Client';
-import { Metric } from '../metrics/Metrics';
+import Collection from '../src/Collection';
+import Vector5db from '../src/Vector5db';
+import { Metric } from '../src/metrics/Metric';
 
 describe('Collection query', () => {
-  let client: Vector5Client;
-  let collection: ReturnType<typeof client.create_collection>;
+  let client: Vector5db;
+  let collection: Collection;
 
   beforeEach(() => {
-    client = new Vector5Client();
-    collection = client.create_collection('testCollection');
+    client = new Vector5db();
+    collection = client.createCollection('testCollection');
 
     const items = [
       { id: 'item1', vector: [1, 2, 3], metadata: { category: 'A' }, document: 'Sample 1' },

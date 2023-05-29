@@ -1,4 +1,4 @@
-import { CosineSimilarity } from '../../metrics/CosineSimilarity';
+import CosineSimilarity from '../../src/metrics/CosineSimilarity';
 
 describe('CosineSimilarity', () => {
     test('similarity', () => {

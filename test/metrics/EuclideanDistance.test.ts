@@ -1,4 +1,4 @@
-import { EuclideanDistance } from '../../metrics/EuclideanDistance';
+import EuclideanDistance from '../../src/metrics/EuclideanDistance';
 
 describe('EuclideanDistance', () => {
     test('distance', () => {

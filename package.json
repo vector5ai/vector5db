@@ -3,6 +3,7 @@
   "description": "typescript vector storage for frontend applications",
   "version": "0.0.1",
   "license": "MIT",
+  "main": "Vector5db.ts",
   "keywords": [
     "vector",
     "storage",

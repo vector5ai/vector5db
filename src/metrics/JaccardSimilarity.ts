@@ -1,4 +1,4 @@
-export class JaccardSimilarity {
+export default class JaccardSimilarity {
     static distance(a: number[], b: number[]): number {
         const setA = new Set(a);
         const setB = new Set(b);
