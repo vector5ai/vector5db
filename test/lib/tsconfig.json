@@ -2,9 +2,10 @@
   "compilerOptions": {
     "target": "es2017",
     "module": "commonjs",
+    // "module": "es2022",
     "strict": true,
     "esModuleInterop": true,
-    "outDir": "dist"
+    "outDir": "dist",
   },
-  "include": ["benchmark.ts"]
+  "files": ["benchmark.ts"]
 }

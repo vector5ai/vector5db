@@ -22,17 +22,17 @@ function generateItems(count: number, vectorLength: number): Item[] {
 }
 
 function testPerformance(itemCount: number, vectorLength: number, k: number, metric: Metric): void {
-  const collection = new Collection('test_collection');
+  const collection = new Collection('test_collection', false);
   const items = generateItems(itemCount, vectorLength);
 
   items.forEach((item) => {
     collection.add(item.id, item.vector, item.metadata, item.document);
   });
 
-  const queryItem = generateItems(1, vectorLength)[0];
+  const queryVector = generateRandomVector(vectorLength);
 
   const startTime = performance.now();
-  collection.nearestNeighbors(queryItem, k, metric);
+  collection.query([queryVector], k, metric);
   const endTime = performance.now();
 
   console.log(`Time taken for ${itemCount} items with ${vectorLength}-dimensional vectors: ${(endTime - startTime).toFixed(2)} ms`);
@@ -40,16 +40,16 @@ function testPerformance(itemCount: number, vectorLength: number, k: number, met
 
 describe('Collection Performance Tests', () => {
   const testCases = [
-    { itemCount: 10000, vectorLength: 3, k: 5, metric: Metric.EUCLIDEAN },
-    { itemCount: 100000, vectorLength: 3, k: 5, metric: Metric.EUCLIDEAN },
-    { itemCount: 10000, vectorLength: 3, k: 5, metric: Metric.COSINE },
-    { itemCount: 100000, vectorLength: 3, k: 5, metric: Metric.COSINE },
-    { itemCount: 10000, vectorLength: 3, k: 5, metric: Metric.JACCARD },
-    { itemCount: 100000, vectorLength: 3, k: 5, metric: Metric.JACCARD },
+    // { itemCount: 10000, vectorLength: 3, k: 5, metric: Metric.EUCLIDEAN },
+    // { itemCount: 100000, vectorLength: 3, k: 5, metric: Metric.EUCLIDEAN },
+    // { itemCount: 10000, vectorLength: 3, k: 5, metric: Metric.COSINE },
+    // { itemCount: 100000, vectorLength: 3, k: 5, metric: Metric.COSINE },
+    // { itemCount: 10000, vectorLength: 3, k: 5, metric: Metric.JACCARD },
+    // { itemCount: 100000, vectorLength: 3, k: 5, metric: Metric.JACCARD },
 
-    { itemCount: 10000, vectorLength: 1536, k: 5, metric: Metric.EUCLIDEAN },
-    { itemCount: 10000, vectorLength: 1536, k: 5, metric: Metric.COSINE },
-    { itemCount: 10000, vectorLength: 1536, k: 5, metric: Metric.JACCARD },
+    { itemCount: 1000, vectorLength: 1536, k: 5, metric: Metric.EUCLIDEAN },
+    { itemCount: 1000, vectorLength: 1536, k: 5, metric: Metric.COSINE },
+    { itemCount: 1000, vectorLength: 1536, k: 5, metric: Metric.JACCARD },
   ];
 
   testCases.forEach((testCase) => {

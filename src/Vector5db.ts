@@ -11,8 +11,8 @@ export default class Vector5db {
         return Array.from(this.collections.keys());
     }
 
-    createCollection(name: string): Collection {
-        const collection = new Collection(name);
+    createCollection(name: string, useKdTree: boolean = false): Collection {
+        const collection = new Collection(name, useKdTree);
         this.collections.set(name, collection);
         return collection;
     }

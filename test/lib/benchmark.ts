@@ -4,151 +4,161 @@ import { kdTree } from 'kd-tree-javascript';
 import ProgressBar from 'progress';
 import v8 from 'v8';
 
-interface Point2D {
-  0: number;
-  1: number;
-}
+(async () => {
 
-interface Point1536D {
-  coords: number[];
-}
+  interface Point2D {
+    0: number;
+    1: number;
+  }
 
-interface Point2D {
-  0: number;
-  1: number;
-}
+  interface Point1536D {
+    coords: number[];
+  }
 
-interface Point1536D {
-  coords: number[];
-}
+  interface Point2D {
+    0: number;
+    1: number;
+  }
 
-const euclideanDistanceMyImpl = (a: number[], b: number[]): number => {
-  return Math.sqrt(a.reduce((sum, value, index) => sum + Math.pow(value - b[index], 2), 0));
-};
+  interface Point1536D {
+    coords: number[];
+  }
 
-const euclideanDistance2D = (a: Point2D, b: Point2D): number => {
-  return Math.sqrt(Math.pow(a[0] - b[0], 2) + Math.pow(a[1] - b[1], 2));
-};
+  const euclideanDistanceMyImpl = (a: number[], b: number[]): number => {
+    return Math.sqrt(a.reduce((sum, value, index) => sum + Math.pow(value - b[index], 2), 0));
+  };
 
-const euclideanDistance1536D = (a: Point1536D, b: Point1536D): number => {
-  return Math.sqrt(
-    a.coords.reduce((sum, value, index) => sum + Math.pow(value - b.coords[index], 2), 0)
-  );
-};
+  const euclideanDistance2D = (a: Point2D, b: Point2D): number => {
+    return Math.sqrt(Math.pow(a[0] - b[0], 2) + Math.pow(a[1] - b[1], 2));
+  };
 
-// Perform 2D points test
-console.log('Starting 2D points test...');
+  const euclideanDistance1536D = (a: Point1536D, b: Point1536D): number => {
+    return Math.sqrt(
+      a.coords.reduce((sum, value, index) => sum + Math.pow(value - b.coords[index], 2), 0)
+    );
+  };
 
-const benchmarkResults = [];
+  // Perform 2D points test
+  console.log('Starting 2D points test...');
 
-// Test with 2D points
-const numPoints2D = 100000;
-const points2D: Point2D[] = Array.from({ length: numPoints2D }, () => ({
-  0: Math.random() * 100,
-  1: Math.random() * 100,
-}));
+  const benchmarkResults: { Dimensions: number; "My KDTree (ms)": number; "kd-tree-javascript (ms)": number; }[] = [];
 
-const numQueries2D = 100000;
-const queryPoints2D: Point2D[] = Array.from({ length: numQueries2D }, () => ({
-  0: Math.random() * 100,
-  1: Math.random() * 100,
-}));
+  // Test with 2D points
+  const numPoints2D = 100000;
+  const points2D: Point2D[] = Array.from({ length: numPoints2D }, () => ({
+    0: Math.random() * 100,
+    1: Math.random() * 100,
+  }));
 
-const barMyImpl2D = new ProgressBar('My Impl 2D points [:bar] :percent :etas', { total: numQueries2D });
-const barKDTreeJS2D = new ProgressBar('KDTreeJS 2D points [:bar] :percent :etas', { total: numQueries2D });
+  const numQueries2D = 100000;
+  const queryPoints2D: Point2D[] = Array.from({ length: numQueries2D }, () => ({
+    0: Math.random() * 100,
+    1: Math.random() * 100,
+  }));
 
-let initialMemory = v8.getHeapStatistics();//process.memoryUsage().heapUsed;
-const myKDTree2D = new KDTree(points2D.map(point => {return { id: 'item1', vector: [point[0], point[1]], metadata: {}, document: '' }}));
-const myKDTree2DStartTime = performance.now();
-const myImplResults = queryPoints2D.map((queryPoint, index, array) => {
-  myKDTree2D.nearestNeighbor([queryPoint[0], queryPoint[1]], euclideanDistanceMyImpl, undefined, 1);
-  barMyImpl2D.tick();
-});
-const myKDTree2DEndTime = performance.now();
-let finalMemory = v8.getHeapStatistics();//process.memoryUsage().heapUsed;
-console.log(`My KDTree implementation took ${myKDTree2DEndTime - myKDTree2DStartTime} ms.`);
-console.log(`Memory used: ${finalMemory.used_heap_size - initialMemory.used_heap_size} bytes`);
+  const barMyImpl2D = new ProgressBar('My Impl 2D points [:bar] :percent :etas', { total: numQueries2D });
+  const barKDTreeJS2D = new ProgressBar('KDTreeJS 2D points [:bar] :percent :etas', { total: numQueries2D });
 
-initialMemory = v8.getHeapStatistics();//process.memoryUsage().heapUsed;
-const kdTreeJavaScript2D = new kdTree<Point2D>(points2D, euclideanDistance2D, [0, 1]);
-const kdTreeJavaScript2DStartTime = performance.now();
-const javascriptImplResults = queryPoints2D.map((queryPoint, index, array) => {
-  kdTreeJavaScript2D.nearest(queryPoint, 1);
-  barKDTreeJS2D.tick(); 
-});
-const kdTreeJavaScript2DEndTime = performance.now();
-finalMemory = v8.getHeapStatistics();//process.memoryUsage().heapUsed;
-console.log(`kd-tree-javascript implementation took ${kdTreeJavaScript2DEndTime - kdTreeJavaScript2DStartTime} ms.`);
-console.log(`Memory used: ${finalMemory.used_heap_size - initialMemory.used_heap_size} bytes`);
+  let initialMemory = v8.getHeapStatistics();//process.memoryUsage().heapUsed;
+  const myKDTree2D = new KDTree(points2D.map(point => { return { id: 'item1', vector: [point[0], point[1]], metadata: {}, document: '' } }));
+  const myKDTree2DStartTime = performance.now();
+  const myImplResults = queryPoints2D.map((queryPoint, index, array) => {
+    barMyImpl2D.tick();
+    return myKDTree2D.nearestNeighbor([queryPoint[0], queryPoint[1]], euclideanDistanceMyImpl, undefined, 1);
+  });
+  const myKDTree2DEndTime = performance.now();
 
-benchmarkResults.push({
-  Dimensions: 2,
-  'My KDTree (ms)': myKDTree2DEndTime - myKDTree2DStartTime,
-  'kd-tree-javascript (ms)': kdTreeJavaScript2DEndTime - kdTreeJavaScript2DStartTime,
-});
+  let finalMemory = v8.getHeapStatistics();//process.memoryUsage().heapUsed;
+  console.log(`My KDTree implementation took ${myKDTree2DEndTime - myKDTree2DStartTime} ms.`);
+  console.log(`Memory used: ${finalMemory.used_heap_size - initialMemory.used_heap_size} bytes`);
 
-// Compare the results
-const sameResults = myImplResults.every((result, index) => {
-  return JSON.stringify(result) === JSON.stringify(javascriptImplResults[index]);
-});
-console.log(`Both implementations returned the same results: ${sameResults}`);
+  initialMemory = v8.getHeapStatistics();//process.memoryUsage().heapUsed;
+  const kdTreeJavaScript2D = new kdTree<Point2D>(points2D, euclideanDistance2D, [0, 1]);
+  const kdTreeJavaScript2DStartTime = performance.now();
+  const javascriptImplResults = queryPoints2D.map((queryPoint, index, array) => {
+    barKDTreeJS2D.tick();
+    return kdTreeJavaScript2D.nearest(queryPoint, 1);
+  });
+  const kdTreeJavaScript2DEndTime = performance.now();
+  finalMemory = v8.getHeapStatistics();//process.memoryUsage().heapUsed;
+  console.log(`kd-tree-javascript implementation took ${kdTreeJavaScript2DEndTime - kdTreeJavaScript2DStartTime} ms.`);
+  console.log(`Memory used: ${finalMemory.used_heap_size - initialMemory.used_heap_size} bytes`);
+
+  benchmarkResults.push({
+    Dimensions: 2,
+    'My KDTree (ms)': myKDTree2DEndTime - myKDTree2DStartTime,
+    'kd-tree-javascript (ms)': kdTreeJavaScript2DEndTime - kdTreeJavaScript2DStartTime,
+  });
+
+  // Compare the results
+  const sameResults = myImplResults.every((result, index) => {
+    if(JSON.stringify(result[0].vector) !== JSON.stringify(Object.values(javascriptImplResults[index][0][0]))) {
+      const myDist = euclideanDistanceMyImpl([queryPoints2D[index][0], queryPoints2D[index][1]], result[0].vector)
+      const kdtreeDist = euclideanDistance2D(queryPoints2D[index], javascriptImplResults[index][0][0])
+      debugger;
+    }
+    return JSON.stringify(result[0].vector) === JSON.stringify(Object.values(javascriptImplResults[index][0][0]));
+  });
+  console.log(`Both implementations returned the same results: ${sameResults}`);
 
 
-console.log(`-----------------------------------------------------------------------------------------------------------------------------------`);
+  console.log(`-----------------------------------------------------------------------------------------------------------------------------------`);
 
-// Perform 1536D points test
-console.log('Starting 1536D points test...');
+  // Perform 1536D points test
+  console.log('Starting 1536D points test...');
 
-// Test with 1536D points
-// const numPoints1536D = 100000;
-const numPoints1536D = 2000;
-const points1536D: Point1536D[] = Array.from({ length: numPoints1536D }, () => ({
-  coords: Array.from({ length: 1536 }, () => Math.random() * 2 - 1),
-}));
+  // Test with 1536D points
+  // const numPoints1536D = 100000;
+  const numPoints1536D = 2000;
+  const points1536D: Point1536D[] = Array.from({ length: numPoints1536D }, () => ({
+    coords: Array.from({ length: 1536 }, () => Math.random() * 2 - 1),
+  }));
 
-const numQueries1536D = 10000;
-const queryPoints1536D: Point1536D[] = Array.from({ length: numQueries1536D }, () => ({
-  coords: Array.from({ length: 1536 }, () => Math.random() * 2 - 1),
-}));
+  const numQueries1536D = 10000;
+  const queryPoints1536D: Point1536D[] = Array.from({ length: numQueries1536D }, () => ({
+    coords: Array.from({ length: 1536 }, () => Math.random() * 2 - 1),
+  }));
 
-const barMyImpl1536D = new ProgressBar('My Impl 1536D points [:bar] :percent :etas', { total: numQueries1536D });
-const barKDTreeJS1536D = new ProgressBar('KDTreeJS 1536D points [:bar] :percent :etas', { total: numQueries1536D });
+  const barMyImpl1536D = new ProgressBar('My Impl 1536D points [:bar] :percent :etas', { total: numQueries1536D });
+  const barKDTreeJS1536D = new ProgressBar('KDTreeJS 1536D points [:bar] :percent :etas', { total: numQueries1536D });
 
-initialMemory = v8.getHeapStatistics();//process.memoryUsage().heapUsed;
-const myKDTree1536D = new KDTree(points1536D.map(point => {return { id: 'item1', vector: point.coords, metadata: {}, document: '' }}));
-const myKDTree1536DStartTime = performance.now();
-const myImplResults1536D = queryPoints1536D.map((queryPoint, index, array) => {
-  myKDTree1536D.nearestNeighbor(queryPoint.coords, euclideanDistanceMyImpl, undefined, 1);
-  barMyImpl1536D.tick();
-});
-const myKDTree1536DEndTime = performance.now();
-finalMemory = v8.getHeapStatistics();//process.memoryUsage().heapUsed;
-console.log(`My KDTree implementation took ${myKDTree1536DEndTime - myKDTree1536DStartTime} ms.`);
-console.log(`Memory used: ${finalMemory.used_heap_size - initialMemory.used_heap_size} bytes`);
+  initialMemory = v8.getHeapStatistics();//process.memoryUsage().heapUsed;
+  const myKDTree1536D = new KDTree(points1536D.map(point => {return { id: 'item1', vector: point.coords, metadata: {}, document: '' }}));
+  const myKDTree1536DStartTime = performance.now();
+  const myImplResults1536D = queryPoints1536D.map((queryPoint, index, array) => {
+    barMyImpl1536D.tick();
+    return myKDTree1536D.nearestNeighbor(queryPoint.coords, euclideanDistanceMyImpl, undefined, 1);
+  });
+  const myKDTree1536DEndTime = performance.now();
+  finalMemory = v8.getHeapStatistics();//process.memoryUsage().heapUsed;
+  console.log(`My KDTree implementation took ${myKDTree1536DEndTime - myKDTree1536DStartTime} ms.`);
+  console.log(`Memory used: ${finalMemory.used_heap_size - initialMemory.used_heap_size} bytes`);
 
-initialMemory = v8.getHeapStatistics();//process.memoryUsage().heapUsed;
-const kdTreeJavaScript1536D = new kdTree<Point1536D>(points1536D, euclideanDistance1536D, ['coords']);
-const kdTreeJavaScript1536DStartTime = performance.now();
-const javascriptImplResults1536D = queryPoints1536D.map((queryPoint, index, array) => {
-  kdTreeJavaScript1536D.nearest(queryPoint, 1);
-  barKDTreeJS1536D.tick();
-});
-const kdTreeJavaScript1536DEndTime = performance.now();
-finalMemory = v8.getHeapStatistics();//process.memoryUsage().heapUsed;
-console.log(`kd-tree-javascript implementation took ${kdTreeJavaScript1536DEndTime - kdTreeJavaScript1536DStartTime} ms.`);
-console.log(`Memory used: ${finalMemory.used_heap_size - initialMemory.used_heap_size} bytes`);
+  initialMemory = v8.getHeapStatistics();//process.memoryUsage().heapUsed;
+  const kdTreeJavaScript1536D = new kdTree<Point1536D>(points1536D, euclideanDistance1536D, ['coords']);
+  const kdTreeJavaScript1536DStartTime = performance.now();
+  const javascriptImplResults1536D = queryPoints1536D.map((queryPoint, index, array) => {
+    barKDTreeJS1536D.tick();
+    return kdTreeJavaScript1536D.nearest(queryPoint, 1);
+  });
+  const kdTreeJavaScript1536DEndTime = performance.now();
+  finalMemory = v8.getHeapStatistics();//process.memoryUsage().heapUsed;
+  console.log(`kd-tree-javascript implementation took ${kdTreeJavaScript1536DEndTime - kdTreeJavaScript1536DStartTime} ms.`);
+  console.log(`Memory used: ${finalMemory.used_heap_size - initialMemory.used_heap_size} bytes`);
 
-benchmarkResults.push({
-  Dimensions: 1536,
-  'My KDTree (ms)': myKDTree1536DEndTime - myKDTree1536DStartTime,
-  'kd-tree-javascript (ms)': kdTreeJavaScript1536DEndTime - kdTreeJavaScript1536DStartTime,
-});
+  benchmarkResults.push({
+    Dimensions: 1536,
+    'My KDTree (ms)': myKDTree1536DEndTime - myKDTree1536DStartTime,
+    'kd-tree-javascript (ms)': kdTreeJavaScript1536DEndTime - kdTreeJavaScript1536DStartTime,
+  });
 
-// Compare the results
-const sameResults1536D = myImplResults.every((result, index) => {
-  return JSON.stringify(result) === JSON.stringify(javascriptImplResults[index]);
-});
-console.log(`Both implementations returned the same results: ${sameResults1536D}`);
+  // Compare the results
+  const sameResults1536D = myImplResults1536D.every((result, index) => {
+    return JSON.stringify(result[0].vector) === JSON.stringify(Object.values(javascriptImplResults1536D[index][0][0]));
+  });
+  console.log(`Both implementations returned the same results: ${sameResults1536D}`);
 
-// Print the results
-console.table(benchmarkResults);
+  // Print the results
+  console.table(benchmarkResults);
+
+})()
