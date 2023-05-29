@@ -4,18 +4,23 @@ import JaccardSimilarity from './metrics/JaccardSimilarity';
 import { Metric } from './metrics/Metric';
 import Item from './Item';
 import { KDTree } from './lib/KDTree';
+import { Index, IndexKey } from './lib/Index';
+import { KDTreeIndex } from './lib/KDTreeIndex';
+import { BruteForceIndex } from './lib/BruteForceIndex';
 
 export default class Collection {
     private name: string;
     private data: Map<string, Item>;
-    private kdTree: KDTree | null;
     private useKdTree: boolean;
+    // private indices: Map<string, Index>;
+    private index: Index;
 
     constructor(name: string, useKdTree: boolean = true) {
         this.name = name;
         this.data = new Map();
-        this.kdTree = null;
         this.useKdTree = useKdTree;
+
+        this.initIndices();
     }
 
     count(): number {
@@ -30,6 +35,8 @@ export default class Collection {
     ): void {
         const item: Item = { id, vector, metadata, document };
         this.data.set(id, item);
+
+        this.index.addItem(item);
     }
 
     get(id: string): Item | null {
@@ -45,39 +52,28 @@ export default class Collection {
         n_results: number = 1,
         metric: Metric = Metric.EUCLIDEAN,
         where: Record<string, any> = {}
-    ): Promise<Item[][]> {
+    ): Item[][] {
+        console.log(this.index.constructor.name);
         const distanceFunction = this.getDistanceFunction(metric);
 
-        if (this.useKdTree) {
-            this.kdTree = new KDTree(Array.from(this.data.values()));
+        this.index.buildIndex();
 
-            return Promise.all(query_embeddings.map(async (query_embedding) => {
-                const nearest = await this.kdTree.nearestNeighbor(query_embedding, distanceFunction, where, n_results);
-                return nearest;
-            }));
-        } else {
+        return query_embeddings.map((query_embedding) => {
+            const nearest = this.index.query(query_embedding, distanceFunction, n_results, undefined, where);
+            return nearest.map(item => this.data.get(item.dataId));
+        });
 
-            return Promise.all(query_embeddings.map(async (query_embedding) => {
-                const itemsWithDistance = Array.from(this.data.values())
-                    .filter((item) => this.filterByMetadata(item, where))
-                    .map((item) => ({
-                        ...item,
-                        distance: distanceFunction(query_embedding, item.vector),
-                    }));
-
-                itemsWithDistance.sort((a, b) => a.distance - b.distance);
-
-                return itemsWithDistance.slice(0, n_results);
-            }));
-        }
     }
 
     delete(id: string): void {
         this.data.delete(id);
+
+        this.index.removeItem(id);
     }
 
     reset(): void {
         this.data.clear();
+        this.initIndices();
     }
 
     distance(a: number[], b: number[], metric: Metric = Metric.EUCLIDEAN): number {
@@ -86,26 +82,21 @@ export default class Collection {
         return distanceFunction(a, b)
     }
 
-    nearestNeighbors(queryItem: Item, k: number, metric: Metric = Metric.EUCLIDEAN): Item[] {
-        const itemsArray = Array.from(this.data.values());
-
-        const distances = itemsArray.map((item) => ({
-            ...item,
-            distance: this.distance(queryItem.vector, item.vector, metric),
-        }));
-
-        distances.sort((a, b) => a.distance - b.distance);
-
-        return distances.slice(0, k);
-    }
-
-    private filterByMetadata(item: Item, where: Record<string, any>): boolean {
+    static filterByMetadata(item: Item, where: Record<string, any>): boolean {
         for (const key in where) {
             if (item.metadata[key] !== where[key]) {
                 return false;
             }
         }
         return true;
+    }
+
+    private initIndices(): void {
+        if (this.useKdTree) {
+            this.index = new KDTreeIndex();
+        } else {
+            this.index = new BruteForceIndex();
+        }
     }
 
     private getDistanceFunction(metric: Metric = Metric.EUCLIDEAN): (a: number[], b: number[]) => number {
