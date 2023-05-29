@@ -3,4 +3,5 @@ export default interface Item {
     vector: number[];
     metadata: Record<string, any>;
     document: string;
+    distance?: number;
 }
