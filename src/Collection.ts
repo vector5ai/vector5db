@@ -3,14 +3,19 @@ import CosineSimilarity from './metrics/CosineSimilarity';
 import JaccardSimilarity from './metrics/JaccardSimilarity';
 import { Metric } from './metrics/Metric';
 import Item from './Item';
+import { KDTree } from './lib/KDTree';
 
 export default class Collection {
     private name: string;
     private data: Map<string, Item>;
+    private kdTree: KDTree | null;
+    private useKdTree: boolean;
 
-    constructor(name: string) {
+    constructor(name: string, useKdTree: boolean = true) {
         this.name = name;
         this.data = new Map();
+        this.kdTree = null;
+        this.useKdTree = useKdTree;
     }
 
     count(): number {
@@ -40,21 +45,31 @@ export default class Collection {
         n_results: number = 1,
         metric: Metric = Metric.EUCLIDEAN,
         where: Record<string, any> = {}
-    ): Item[][] {
+    ): Promise<Item[][]> {
         const distanceFunction = this.getDistanceFunction(metric);
 
-        return query_embeddings.map((query_embedding) => {
-            const itemsWithDistance = Array.from(this.data.values())
-                .filter((item) => this.filterByMetadata(item, where))
-                .map((item) => ({
-                    ...item,
-                    distance: distanceFunction(query_embedding, item.vector),
-                }));
+        if (this.useKdTree) {
+            this.kdTree = new KDTree(Array.from(this.data.values()));
 
-            itemsWithDistance.sort((a, b) => a.distance - b.distance);
+            return Promise.all(query_embeddings.map(async (query_embedding) => {
+                const nearest = await this.kdTree.nearestNeighbor(query_embedding, distanceFunction, where, n_results);
+                return nearest;
+            }));
+        } else {
 
-            return itemsWithDistance.slice(0, n_results);
-        });
+            return Promise.all(query_embeddings.map(async (query_embedding) => {
+                const itemsWithDistance = Array.from(this.data.values())
+                    .filter((item) => this.filterByMetadata(item, where))
+                    .map((item) => ({
+                        ...item,
+                        distance: distanceFunction(query_embedding, item.vector),
+                    }));
+
+                itemsWithDistance.sort((a, b) => a.distance - b.distance);
+
+                return itemsWithDistance.slice(0, n_results);
+            }));
+        }
     }
 
     delete(id: string): void {

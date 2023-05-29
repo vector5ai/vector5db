@@ -21,40 +21,40 @@ describe('Collection query', () => {
     items.forEach((item) => collection.add(item.id, item.vector, item.metadata, item.document));
   });
 
-  test('Euclidean distance', () => {
+  test('Euclidean distance', async () => {
     const query_embeddings = [[1, 2, 3], [7, 8, 9]];
-    const results = collection.query(query_embeddings, 1, Metric.EUCLIDEAN);
+    const results = await collection.query(query_embeddings, 1, Metric.EUCLIDEAN);
     expect(results.length).toBe(2);
     expect(results[0][0].id).toBe('item1');
     expect(results[1][0].id).toBe('item3');
   });
 
-  test('Cosine similarity', () => {
+  test('Cosine similarity', async () => {
     const query_embeddings = [[1, 2, 3], [7, 8, 9]];
-    const results = collection.query(query_embeddings, 1, Metric.COSINE);
+    const results = await collection.query(query_embeddings, 1, Metric.COSINE);
     expect(results.length).toBe(2);
     expect(results[0][0].id).toBe('item1');
     expect(results[1][0].id).toBe('item3');
   });
 
-  test('Jaccard similarity', () => {
+  test('Jaccard similarity', async () => {
     const query_embeddings = [[1, 2, 3], [7, 8, 9]];
-    const results = collection.query(query_embeddings, 1, Metric.JACCARD);
+    const results = await collection.query(query_embeddings, 1, Metric.JACCARD);
     expect(results.length).toBe(2);
     expect(results[0][0].id).toBe('item1');
     expect(results[1][0].id).toBe('item3');
   });
 
-  test('Filter by metadata', () => {
+  test('Filter by metadata', async () => {
     const query_embeddings = [[1, 2, 3]];
-    const results = collection.query(query_embeddings, 1, Metric.EUCLIDEAN, { category: 'B' });
+    const results = await collection.query(query_embeddings, 1, Metric.EUCLIDEAN, { category: 'B' });
     expect(results.length).toBe(1);
     expect(results[0][0].id).toBe('item4');
   });
 
-  test('Empty result', () => {
+  test('Empty result', async () => {
     const query_embeddings = [[1, 2, 3]];
-    const results = collection.query(query_embeddings, 1, Metric.EUCLIDEAN, { category: 'C' });
+    const results = await collection.query(query_embeddings, 1, Metric.EUCLIDEAN, { category: 'C' });
     expect(results.length).toBe(1);
     expect(results[0]).toEqual([]);
   });
