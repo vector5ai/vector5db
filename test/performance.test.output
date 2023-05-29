@@ -1,0 +1,24 @@
+KDTreeIndex
+Collection Performance Tests
+    ✓ Performance test for 10000 items with 3-dimensional vectors (129 ms)
+    ✓ Performance test for 100000 items with 3-dimensional vectors (1416 ms)
+    ✓ Performance test for 10000 items with 3-dimensional vectors (87 ms)
+    ✓ Performance test for 100000 items with 3-dimensional vectors (1476 ms)
+    ✓ Performance test for 10000 items with 3-dimensional vectors (114 ms)
+    ✓ Performance test for 100000 items with 3-dimensional vectors (1706 ms)
+    ✓ Performance test for 1000 items with 1536-dimensional vectors (1130 ms)
+    ✓ Performance test for 1000 items with 1536-dimensional vectors (745 ms)
+    ✓ Performance test for 1000 items with 1536-dimensional vectors (1127 ms)
+
+
+BruteForceIndex
+Collection Performance Tests
+    ✓ Performance test for 10000 items with 3-dimensional vectors (104 ms)
+    ✓ Performance test for 100000 items with 3-dimensional vectors (667 ms)
+    ✓ Performance test for 10000 items with 3-dimensional vectors (77 ms)
+    ✓ Performance test for 100000 items with 3-dimensional vectors (822 ms)
+    ✓ Performance test for 10000 items with 3-dimensional vectors (74 ms)
+    ✓ Performance test for 100000 items with 3-dimensional vectors (695 ms)
+    ✓ Performance test for 1000 items with 1536-dimensional vectors (1139 ms)
+    ✓ Performance test for 1000 items with 1536-dimensional vectors (1519 ms)
+    ✓ Performance test for 1000 items with 1536-dimensional vectors (1097 ms)
