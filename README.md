@@ -31,8 +31,9 @@ const items: Item[] = [
 ];
 
 // Create a new collection
+// Index types parameter is optional, only BRUTE_FORCE is supported in v0.1.0 release
 const collectionName = 'exampleCollection';
-const collection = db.createCollection(collectionName);
+const collection = db.createCollection(collectionName, Metric.EUCLIDEAN, [IndexType.BRUTE_FORCE]);
 
 // Insert items into the collection
 items.forEach((item) => collection.add(item.id, item.vector, item.metadata, item.document));
@@ -42,10 +43,10 @@ const retrievedCollection = db.getCollection(collectionName);
 
 // Query the nearest item
 const query = [2, 3];
-const nearest = retrievedCollection.query(query, 1, Metric.EUCLIDEAN);
+const nearest = retrievedCollection.query(query, 1);
 
 // Query items with metadata filtering
-const filteredResults = retrievedCollection.query(query, 2, Metric.EUCLIDEAN, { category: 'A' });
+const filteredResults = retrievedCollection.query(query, 2, { category: 'A' });
 
 // Delete a collection
 db.deleteCollection(collectionName);
@@ -86,14 +87,14 @@ collection.peek(5);
 // query(
 //     query_embeddings: number[][],
 //     n_results: number = 1,
-//     metric: Metric = Metric.EUCLIDEAN,
-//     where: Record<string, any> = {}
+//     where?: MetadataType | undefined,
+//     indexType: IndexType = IndexType.BRUTE_FORCE
 // ): Item[][]
 //
 // Query the nearest item
-collection.query([0, 0, 1, 1, 2], 1, Metric.EUCLIDEAN);
+collection.query([0, 0, 1, 1, 2], 1);
 // Query items with metadata filtering
-collection.query([0, 0, 1, 1, 2], 1, Metric.EUCLIDEAN, { category: 'C', page: 1 });
+collection.query([0, 0, 1, 1, 2], 1, { category: 'C', page: 1 });
 
 
 // delete(id: string): void 
@@ -111,10 +112,3 @@ collection.reset();
 // 
 // Get distance between two vectors using selected metric
 collection.distance([1, 2], [1, 3], Metric.EUCLIDEAN);
-
-
-// nearestNeighbors(queryItem: Item, k: number, metric: Metric = Metric.EUCLIDEAN): Item[]
-//
-// Find k-number of neigbours for given collection item
-item = collection.get('item1')
-collection.nearestNeighbors(item, 2)

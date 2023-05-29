@@ -1,4 +1,6 @@
 import Collection from "./Collection";
+import { IndexType } from "./lib/Index";
+import { Metric } from "./metrics/Metric";
 
 export default class Vector5db {
     private collections: Map<string, Collection>;
@@ -11,8 +13,8 @@ export default class Vector5db {
         return Array.from(this.collections.keys());
     }
 
-    createCollection(name: string, useKdTree: boolean = false): Collection {
-        const collection = new Collection(name, useKdTree);
+    createCollection(name: string, metric: Metric = Metric.EUCLIDEAN, indicies: IndexType[] = [IndexType.BRUTE_FORCE]) {
+        const collection = new Collection(name, metric, indicies);
         this.collections.set(name, collection);
         return collection;
     }
