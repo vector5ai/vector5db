@@ -17,7 +17,7 @@ A lightweight and efficient client-side vector database implementation in TypeSc
 npm install --save vector5ai/vector5db
 ```
 
-## Vecto5db operations
+## Vector5db operations
 
 ```javascript
 // Initialize Vector5db
