@@ -1,4 +1,4 @@
-# Vector5db Client-side Vector Database
+# [db5] Client-side vector database by vector5.ai
 
 A lightweight and efficient client-side vector database implementation in TypeScript. This library is designed for web applications, providing features such as inserting, querying, and deleting vectors while supporting operations like distance calculations and nearest neighbor search.
 
@@ -7,8 +7,9 @@ A lightweight and efficient client-side vector database implementation in TypeSc
 - Lightweight and efficient vector database
 - Runs entirely in the browser, on the client side
 - Insert, query, and delete vectors
-- Supports distance calculations (e.g., Euclidean distance)
+- Supports multiple distance calculations (e.g., Euclidean distance)
 - Nearest neighbor search with optional metadata filtering
+- Multiple indexing strategies that can be used simultaneously
 - Written in TypeScript
 
 ## Installation
@@ -31,7 +32,7 @@ const items: Item[] = [
 ];
 
 // Create a new collection
-// Index types parameter is optional, only BRUTE_FORCE is supported in v0.1.0 release
+// Index parameter is optional, only BRUTE_FORCE is supported in current release
 const collectionName = 'exampleCollection';
 const collection = db.createCollection(collectionName, Metric.EUCLIDEAN, [IndexType.BRUTE_FORCE]);
 
@@ -58,7 +59,6 @@ db.reset();
 ## Collection operations
 
 ```javascript
-
 // count(): number
 //
 // Get length of collection entries
@@ -92,23 +92,22 @@ collection.peek(5);
 // ): Item[][]
 //
 // Query the nearest item
-collection.query([0, 0, 1, 1, 2], 1);
+collection.query([[0, 0, 1, 1, 2]], 1);
 // Query items with metadata filtering
-collection.query([0, 0, 1, 1, 2], 1, { category: 'C', page: 1 });
+collection.query([[0, 0, 1, 1, 2]], 1, { category: 'C', page: 1 });
 
-
-// delete(id: string): void 
+// delete(id: string): void
 //
 // Remove item from collection
 collection.delete('item1');
 
-
-// reset(): void 
+// reset(): void
 //
 // Clear collection
 collection.reset();
 
-// distance(a: number[], b: number[], metric: Metric = Metric.EUCLIDEAN): number 
-// 
+// distance(a: number[], b: number[], metric: Metric = Metric.EUCLIDEAN): number
+//
 // Get distance between two vectors using selected metric
 collection.distance([1, 2], [1, 3], Metric.EUCLIDEAN);
+```
